@@ -318,22 +318,30 @@ public partial class FavoriteViewModel : ObservableObject
         
         try
         {
-            var response = await _apiService.GetDeparturesAsync(StopId, 3);
+            var response = await _apiService.GetDeparturesAsync(StopId, 10);
             
             Departures.Clear();
             
             if (response.Success && response.Data != null)
             {
+                var seen = new HashSet<string>();
                 foreach (var dep in response.Data)
                 {
+                    var key = $"{dep.Line.ShortName}:{dep.DisplayTime:HHmm}";
+                    if (seen.Contains(key)) continue;
+                    seen.Add(key);
                     Departures.Add(dep);
                 }
             }
             else
             {
-                var offlineDeps = _gtfsService.GetDeparturesForStop(StopId, 3);
+                var offlineDeps = _gtfsService.GetDeparturesForStop(StopId, 10);
+                var seen = new HashSet<string>();
                 foreach (var dep in offlineDeps)
                 {
+                    var key = $"{dep.Line.ShortName}:{dep.DisplayTime:HHmm}";
+                    if (seen.Contains(key)) continue;
+                    seen.Add(key);
                     Departures.Add(dep);
                 }
             }

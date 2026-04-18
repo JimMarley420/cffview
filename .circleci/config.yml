@@ -15,10 +15,9 @@ jobs:
           name: Install .NET 10 SDK
           shell: powershell.exe
           command: |
-            $ErrorActionPreference = "Stop"
             Invoke-WebRequest -Uri "https://dot.net/v1/dotnet-install.ps1" -OutFile "dotnet-install.ps1"
             & .\dotnet-install.ps1 -Channel 10.0 -InstallDir "C:\dotnet10"
-            if ($LASTEXITCODE -ne 0) { throw "SDK install failed" }
+            if (-not (Test-Path "C:\dotnet10\dotnet.exe")) { throw "SDK not found after install" }
 
       - run:
           name: Verify .NET 10 SDK
@@ -56,10 +55,9 @@ jobs:
           name: Install .NET 10 SDK
           shell: powershell.exe
           command: |
-            $ErrorActionPreference = "Stop"
             Invoke-WebRequest -Uri "https://dot.net/v1/dotnet-install.ps1" -OutFile "dotnet-install.ps1"
             & .\dotnet-install.ps1 -Channel 10.0 -InstallDir "C:\dotnet10"
-            if ($LASTEXITCODE -ne 0) { throw "SDK install failed" }
+            if (-not (Test-Path "C:\dotnet10\dotnet.exe")) { throw "SDK not found after install" }
 
       - run:
           name: Verify .NET 10 SDK
@@ -85,10 +83,9 @@ jobs:
           name: Install .NET 10 SDK
           shell: powershell.exe
           command: |
-            $ErrorActionPreference = "Stop"
             Invoke-WebRequest -Uri "https://dot.net/v1/dotnet-install.ps1" -OutFile "dotnet-install.ps1"
             & .\dotnet-install.ps1 -Channel 10.0 -InstallDir "C:\dotnet10"
-            if ($LASTEXITCODE -ne 0) { throw "SDK install failed" }
+            if (-not (Test-Path "C:\dotnet10\dotnet.exe")) { throw "SDK not found after install" }
 
       - run:
           name: Verify .NET 10 SDK

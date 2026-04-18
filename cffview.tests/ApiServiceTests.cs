@@ -1,3 +1,4 @@
+using System.IO;
 using System.Net.Http;
 using cffview.Models;
 using cffview.Services;
@@ -65,10 +66,17 @@ public class GtfsServiceTests
 
 public class DatabaseServiceTests
 {
+    private string _testDbPath;
+
+    public DatabaseServiceTests()
+    {
+        _testDbPath = Path.Combine(Path.GetTempPath(), $"test_favorites_{Guid.NewGuid()}.json");
+    }
+
     [Fact]
     public async Task InitializeAsync_CreatesStorageFile()
     {
-        var service = new DatabaseService();
+        var service = new DatabaseService(_testDbPath);
         
         await service.InitializeAsync();
         
@@ -78,7 +86,7 @@ public class DatabaseServiceTests
     [Fact]
     public async Task AddFavoriteAsync_ReturnsFavorite()
     {
-        var service = new DatabaseService();
+        var service = new DatabaseService(_testDbPath);
         await service.InitializeAsync();
         
         var stop = new Stop { Id = "8501120", Name = "Lausanne" };
@@ -91,7 +99,7 @@ public class DatabaseServiceTests
     [Fact]
     public async Task GetFavoritesAsync_ReturnsList()
     {
-        var service = new DatabaseService();
+        var service = new DatabaseService(_testDbPath);
         await service.InitializeAsync();
         
         var favorites = await service.GetFavoritesAsync();
@@ -102,14 +110,12 @@ public class DatabaseServiceTests
     [Fact]
     public async Task RemoveFavoriteAsync_AfterAdd_RemovesFavorite()
     {
-        var service = new DatabaseService();
+        var service = new DatabaseService(_testDbPath);
         await service.InitializeAsync();
         
-        // First add a favorite, then remove it
         var stop = new Stop { Id = "8501120", Name = "Lausanne" };
         var favorite = await service.AddFavoriteAsync(stop);
         
-        // Now remove it
         await service.RemoveFavoriteAsync(favorite.Id);
     }
 }

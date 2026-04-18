@@ -40,9 +40,47 @@ jobs:
           name: Build
           command: dotnet build cffview.sln --configuration Release --no-restore
 
+      - persist_to_workspace:
+          root: .
+          paths:
+            - cffview/bin/Release
+            - cffview.tests/bin/Release
+
+  test:
+    executor:
+      name: windows/default
+
+    steps:
+      - checkout
+
+      - run:
+          name: Install .NET 10 SDK
+          shell: powershell.exe
+          command: |
+            Invoke-WebRequest https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1
+            ./dotnet-install.ps1 -Channel 10.0
+
+      - run:
+          name: Restore packages
+          command: dotnet restore cffview.sln
+
       - run:
           name: Run Tests
-          command: dotnet test cffview.tests\cffview.tests.csproj --configuration Release --no-build --verbosity normal
+          command: dotnet test cffview.tests\cffview.tests.csproj --configuration Release --verbosity normal
+
+  publish:
+    executor:
+      name: windows/default
+
+    steps:
+      - checkout
+
+      - run:
+          name: Install .NET 10 SDK
+          shell: powershell.exe
+          command: |
+            Invoke-WebRequest https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1
+            ./dotnet-install.ps1 -Channel 10.0
 
       - run:
           name: Publish
@@ -55,4 +93,16 @@ jobs:
 workflows:
   build_workflow:
     jobs:
-      - build
+      - build:
+          filters:
+            branches:
+              only: main
+      - test:
+          requires:
+            - build
+      - publish:
+          requires:
+            - test
+          filters:
+            branches:
+              only: main

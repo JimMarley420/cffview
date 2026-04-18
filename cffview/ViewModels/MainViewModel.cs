@@ -182,17 +182,25 @@ public partial class MainViewModel : ObservableObject
             
             if (response.Success && response.Data != null)
             {
+                var seen = new HashSet<string>();
                 foreach (var dep in response.Data)
                 {
+                    var key = $"{dep.Line.ShortName}:{dep.DisplayTime:HHmm}";
+                    if (seen.Contains(key)) continue;
+                    seen.Add(key);
                     Departures.Add(dep);
                 }
                 ShowDepartures = Departures.Any();
             }
             else
             {
-                var offlineDeps = _gtfsService.GetDeparturesForStop(stopId, 3);
+                var offlineDeps = _gtfsService.GetDeparturesForStop(stopId, 10);
+                var seen = new HashSet<string>();
                 foreach (var dep in offlineDeps)
                 {
+                    var key = $"{dep.Line.ShortName}:{dep.DisplayTime:HHmm}";
+                    if (seen.Contains(key)) continue;
+                    seen.Add(key);
                     Departures.Add(dep);
                 }
                 ShowDepartures = Departures.Any();

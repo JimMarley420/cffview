@@ -21,12 +21,21 @@ public class DatabaseService : IDatabaseService
     private List<Favorite> _favorites = new();
     private int _nextId = 1;
 
-    public DatabaseService()
+    public DatabaseService() : this(null) { }
+
+    public DatabaseService(string? customPath)
     {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var dbFolder = Path.Combine(appData, "CFFView");
-        Directory.CreateDirectory(dbFolder);
-        _dataPath = Path.Combine(dbFolder, "favorites.json");
+        if (customPath != null)
+        {
+            _dataPath = customPath;
+        }
+        else
+        {
+            var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var dbFolder = Path.Combine(appData, "CFFView");
+            Directory.CreateDirectory(dbFolder);
+            _dataPath = Path.Combine(dbFolder, "favorites.json");
+        }
     }
 
     public async Task InitializeAsync()

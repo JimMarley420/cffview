@@ -15,36 +15,90 @@ jobs:
           name: Install .NET 10 SDK
           shell: powershell.exe
           command: |
-            Invoke-WebRequest https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1
-            ./dotnet-install.ps1 -Channel 10.0
-            $env:PATH += ";$env:USERPROFILE\.dotnet"
-            [Environment]::SetEnvironmentVariable("PATH", $env:PATH, [EnvironmentVariableTarget]::Machine)
+            Invoke-WebRequest -Uri "https://dot.net/v1/dotnet-install.ps1" -OutFile "dotnet-install.ps1"
+            & .\dotnet-install.ps1 -Channel 10.0 -InstallDir "C:\dotnet10"
+            if (-not (Test-Path "C:\dotnet10\dotnet.exe")) { throw "SDK not found after install" }
 
       - run:
-          name: Verify SDK
-          command: dotnet --info
-
-      - restore_cache:
-          keys:
-            - nuget-cache-{{ checksum "CFFView.sln" }}
-            - nuget-cache-
+          name: Verify .NET 10 SDK
+          shell: powershell.exe
+          command: |
+            & "C:\dotnet10\dotnet.exe" --version
 
       - run:
           name: Restore
-          command: dotnet restore CFFView.sln
-
-      - save_cache:
-          paths:
-            - C:\Users\circleci\.nuget\packages
-          key: nuget-cache-{{ checksum "CFFView.sln" }}
+          shell: powershell.exe
+          command: |
+            & "C:\dotnet10\dotnet.exe" restore cffview.sln
 
       - run:
-          name: Build
-          command: dotnet build CFFView.sln --configuration Release --no-restore
+          name: Compile
+          shell: powershell.exe
+          command: |
+            $env:PATH = "C:\dotnet10;$env:PATH"
+            & "C:\dotnet10\dotnet.exe" build cffview.sln --configuration Release
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - cffview/bin/Release
+            - cffview.tests/bin/Release
+
+  test:
+    executor:
+      name: windows/default
+
+    steps:
+      - checkout
+
+      - run:
+          name: Install .NET 10 SDK
+          shell: powershell.exe
+          command: |
+            Invoke-WebRequest -Uri "https://dot.net/v1/dotnet-install.ps1" -OutFile "dotnet-install.ps1"
+            & .\dotnet-install.ps1 -Channel 10.0 -InstallDir "C:\dotnet10"
+            if (-not (Test-Path "C:\dotnet10\dotnet.exe")) { throw "SDK not found after install" }
+
+      - run:
+          name: Verify .NET 10 SDK
+          shell: powershell.exe
+          command: |
+            & "C:\dotnet10\dotnet.exe" --version
+
+      - run:
+          name: Run Tests
+          shell: powershell.exe
+          command: |
+            $env:PATH = "C:\dotnet10;$env:PATH"
+            & "C:\dotnet10\dotnet.exe" test cffview.tests\cffview.tests.csproj --configuration Release --verbosity normal
+
+  publish:
+    executor:
+      name: windows/default
+
+    steps:
+      - checkout
+
+      - run:
+          name: Install .NET 10 SDK
+          shell: powershell.exe
+          command: |
+            Invoke-WebRequest -Uri "https://dot.net/v1/dotnet-install.ps1" -OutFile "dotnet-install.ps1"
+            & .\dotnet-install.ps1 -Channel 10.0 -InstallDir "C:\dotnet10"
+            if (-not (Test-Path "C:\dotnet10\dotnet.exe")) { throw "SDK not found after install" }
+
+      - run:
+          name: Verify .NET 10 SDK
+          shell: powershell.exe
+          command: |
+            & "C:\dotnet10\dotnet.exe" --version
 
       - run:
           name: Publish
-          command: dotnet publish CFFView.sln -c Release -r win-x64 --self-contained false -o publish
+          shell: powershell.exe
+          command: |
+            $env:PATH = "C:\dotnet10;$env:PATH"
+            & "C:\dotnet10\dotnet.exe" publish cffview\cffview.csproj -c Release -r win-x64 --self-contained false -o publish
 
       - store_artifacts:
           path: publish
@@ -54,3 +108,9 @@ workflows:
   build_workflow:
     jobs:
       - build
+      - test:
+          requires:
+            - build
+      - publish:
+          requires:
+            - test

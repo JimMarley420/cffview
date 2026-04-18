@@ -24,7 +24,6 @@ jobs:
           name: Verify SDK
           command: dotnet --info
 
-      # ✅ Cache basé sur solution (robuste)
       - restore_cache:
           keys:
             - nuget-cache-{{ checksum "CFFView.sln" }}

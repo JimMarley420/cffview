@@ -92,7 +92,7 @@ public class TransportApiService : ITransportApiService
         }
     }
 
-    public async Task<ApiResponse<List<Departure>>> GetDeparturesAsync(string stationId, int limit = 3)
+    public async Task<ApiResponse<List<Departure>>> GetDeparturesAsync(string stationId, int limit = 10)
     {
         try
         {
@@ -118,8 +118,6 @@ public class TransportApiService : ITransportApiService
             }
 
             var departures = result.Stationboard
-                .GroupBy(s => s.DepartureTimestamp)
-                .Select(g => g.First())
                 .Take(limit)
                 .Select(s => new Departure
             {

@@ -1,6 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using cffview.Models;
+using cffview.ViewModels;
 
 namespace cffview;
 
@@ -32,9 +34,25 @@ public partial class MainWindow : Window
 
     private void SearchBox_KeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter && DataContext is ViewModels.MainViewModel vm)
+        if (e.Key == Key.Enter && DataContext is MainViewModel vm)
         {
             vm.SearchCommand.Execute(null);
+        }
+    }
+
+    private void SearchResultsList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (SearchResultsList.SelectedItem is Stop stop && DataContext is MainViewModel vm)
+        {
+            vm.SelectStopCommand.Execute(stop);
+        }
+    }
+
+    private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (DataContext is MainViewModel vm)
+        {
+            vm.ShowSearchResults = false;
         }
     }
 }

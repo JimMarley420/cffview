@@ -211,11 +211,19 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private async Task AddFavoriteAsync()
     {
-        if (SelectedStop == null) return;
+        _logger.Information("AddFavoriteCommand called, SelectedStop: {Stop}", SelectedStop?.Name);
+        
+        if (SelectedStop == null)
+        {
+            _logger.Warning("AddFavorite called but SelectedStop is null");
+            return;
+        }
 
         try
         {
             var favorite = await _databaseService.AddFavoriteAsync(SelectedStop);
+            _logger.Information("Favorite added: {StopName}", favorite.StopName);
+            
             var vm = new FavoriteViewModel(favorite, _apiService, _gtfsService);
             Favorites.Add(vm);
             

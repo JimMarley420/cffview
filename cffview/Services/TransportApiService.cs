@@ -92,7 +92,7 @@ public class TransportApiService : ITransportApiService
         }
     }
 
-    public async Task<ApiResponse<List<Departure>>> GetDeparturesAsync(string stationId, int limit = 10)
+    public async Task<ApiResponse<List<Departure>>> GetDeparturesAsync(string stationId, int limit = 20)
     {
         try
         {
@@ -118,7 +118,6 @@ public class TransportApiService : ITransportApiService
             }
 
             var departures = result.Stationboard
-                .Take(limit)
                 .Select(s => new Departure
             {
                 Id = s.Number ?? s.Name ?? Guid.NewGuid().ToString(),
@@ -139,7 +138,10 @@ public class TransportApiService : ITransportApiService
                 Status = s.Delay > 0 ? DepartureStatus.Delayed :
                          s.Category is "IC" or "EC" or "IR" or "RE" ? DepartureStatus.RealTime :
                          DepartureStatus.Scheduled
-            }).ToList();
+            })
+            .OrderBy(d => d.DisplayTime)
+            .Take(limit)
+            .ToList();
 
             _logger.Information("Retrieved {Count} departures for {Station}", departures.Count, stationId);
             return new ApiResponse<List<Departure>> { Success = true, Data = departures };

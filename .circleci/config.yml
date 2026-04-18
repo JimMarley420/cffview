@@ -11,7 +11,6 @@ jobs:
     steps:
       - checkout
 
-      # Install .NET 10 (latest preview)
       - run:
           name: Install .NET 10 SDK
           shell: powershell.exe
@@ -21,37 +20,33 @@ jobs:
             $env:PATH += ";$env:USERPROFILE\.dotnet"
             [Environment]::SetEnvironmentVariable("PATH", $env:PATH, [EnvironmentVariableTarget]::Machine)
 
-      # Debug SDK
       - run:
           name: Verify SDK
-          command: |
-            dotnet --info
-            dotnet --list-sdks
+          command: dotnet --info
 
-      # Cache NuGet
+      # ✅ Cache basé sur solution (robuste)
       - restore_cache:
           keys:
-            - nuget-cache-{{ checksum "CFFView.csproj" }}
+            - nuget-cache-{{ checksum "CFFView.sln" }}
             - nuget-cache-
 
       - run:
           name: Restore
-          command: dotnet restore
+          command: dotnet restore CFFView.sln
 
       - save_cache:
           paths:
             - C:\Users\circleci\.nuget\packages
-          key: nuget-cache-{{ checksum "CFFView.csproj" }}
+          key: nuget-cache-{{ checksum "CFFView.sln" }}
 
       - run:
           name: Build
-          command: dotnet build --configuration Release --no-restore
+          command: dotnet build CFFView.sln --configuration Release --no-restore
 
       - run:
           name: Publish
-          command: dotnet publish -c Release -r win-x64 --self-contained false -o publish
+          command: dotnet publish CFFView.sln -c Release -r win-x64 --self-contained false -o publish
 
-      # Upload artifact
       - store_artifacts:
           path: publish
           destination: publish

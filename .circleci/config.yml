@@ -11,22 +11,37 @@ jobs:
     steps:
       - checkout
 
+      # Install .NET 10 (latest preview)
       - run:
           name: Install .NET 10 SDK
           shell: powershell.exe
           command: |
             Invoke-WebRequest https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1
-            ./dotnet-install.ps1 -Version 10.0.100-preview
+            ./dotnet-install.ps1 -Channel 10.0
             $env:PATH += ";$env:USERPROFILE\.dotnet"
             [Environment]::SetEnvironmentVariable("PATH", $env:PATH, [EnvironmentVariableTarget]::Machine)
 
+      # Debug SDK
       - run:
           name: Verify SDK
-          command: dotnet --info
+          command: |
+            dotnet --info
+            dotnet --list-sdks
+
+      # Cache NuGet
+      - restore_cache:
+          keys:
+            - nuget-cache-{{ checksum "CFFView.csproj" }}
+            - nuget-cache-
 
       - run:
           name: Restore
           command: dotnet restore
+
+      - save_cache:
+          paths:
+            - C:\Users\circleci\.nuget\packages
+          key: nuget-cache-{{ checksum "CFFView.csproj" }}
 
       - run:
           name: Build
@@ -36,6 +51,7 @@ jobs:
           name: Publish
           command: dotnet publish -c Release -r win-x64 --self-contained false -o publish
 
+      # Upload artifact
       - store_artifacts:
           path: publish
           destination: publish

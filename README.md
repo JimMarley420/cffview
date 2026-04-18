@@ -5,6 +5,7 @@ Application WPF (.NET 10) affichant les prochains départs de transports publics
 ![.NET](https://img.shields.io/badge/.NET-10.0-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Platform](https://img.shields.io/badge/Platform-Windows-red)
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/JimMarley420/cffview?utm_source=oss&utm_medium=github&utm_campaign=JimMarley420%2Fcffview&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
 
 ## Fonctionnalités
 

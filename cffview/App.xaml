@@ -1,0 +1,15 @@
+<Application x:Class="cffview.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:cffview"
+             ShutdownMode="OnMainWindowClose">
+    <Application.Resources>
+        <ResourceDictionary>
+            <FontFamily x:Key="DefaultFont">Segoe UI</FontFamily>
+            <Color x:Key="SbbRed">#EE1C25</Color>
+            <SolidColorBrush x:Key="SbbRedBrush" Color="{StaticResource SbbRed}"/>
+            <Color x:Key="SbbBlue">#004D95</Color>
+            <SolidColorBrush x:Key="SbbBlueBrush" Color="{StaticResource SbbBlue}"/>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

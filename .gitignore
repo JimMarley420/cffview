@@ -1,0 +1,46 @@
+# Build results
+bin/
+obj/
+out/
+publish/
+*.dll
+*.exe
+*.pdb
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.idea/
+
+# NuGet
+packages/
+*.nupkg
+
+# Logs
+Logs/
+*.log
+
+# Data
+Data/
+*.db
+*.json
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Dotnet
+*.runtimeconfig.json
+*.deps.json
+
+# Secrets
+*.pfx
+*.key
+appsettings.*.json
+!appsettings.json

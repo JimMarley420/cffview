@@ -178,7 +178,7 @@ public partial class MainViewModel : ObservableObject
 
         try
         {
-            var response = await _apiService.GetDeparturesAsync(stopId, 3);
+            var response = await _apiService.GetDeparturesAsync(stopId, 10);
             
             if (response.Success && response.Data != null)
             {

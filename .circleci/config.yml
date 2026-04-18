@@ -1,0 +1,36 @@
+version: 2.1
+
+jobs:
+  build:
+    machine:
+      image: windows-server-2022-gui:current
+
+    steps:
+      - checkout
+
+      - run:
+          name: Install .NET 10 SDK
+          command: |
+            choco install dotnet-sdk --version=10.0.100-preview -y
+
+      - run:
+          name: Restore
+          command: dotnet restore
+
+      - run:
+          name: Build WPF app
+          command: dotnet build --configuration Release --no-restore
+
+      - run:
+          name: Publish
+          command: dotnet publish -c Release -r win-x64 --self-contained false -o publish
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - publish
+
+workflows:
+  build_workflow:
+    jobs:
+      - build

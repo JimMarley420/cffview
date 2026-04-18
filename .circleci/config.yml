@@ -17,8 +17,6 @@ jobs:
           command: |
             Invoke-WebRequest https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1
             ./dotnet-install.ps1 -Channel 10.0
-            $env:PATH += ";$env:USERPROFILE\.dotnet"
-            [Environment]::SetEnvironmentVariable("PATH", $env:PATH, [EnvironmentVariableTarget]::Machine)
 
       - run:
           name: Verify SDK
@@ -26,25 +24,29 @@ jobs:
 
       - restore_cache:
           keys:
-            - nuget-cache-{{ checksum "CFFView.sln" }}
+            - nuget-cache-{{ checksum "cffview.sln" }}
             - nuget-cache-
 
       - run:
           name: Restore
-          command: dotnet restore CFFView.sln
+          command: dotnet restore cffview.sln
 
       - save_cache:
           paths:
             - C:\Users\circleci\.nuget\packages
-          key: nuget-cache-{{ checksum "CFFView.sln" }}
+          key: nuget-cache-{{ checksum "cffview.sln" }}
 
       - run:
           name: Build
-          command: dotnet build CFFView.sln --configuration Release --no-restore
+          command: dotnet build cffview.sln --configuration Release --no-restore
+
+      - run:
+          name: Run Tests
+          command: dotnet test cffview.tests\cffview.tests.csproj --configuration Release --no-build --verbosity normal
 
       - run:
           name: Publish
-          command: dotnet publish CFFView.sln -c Release -r win-x64 --self-contained false -o publish
+          command: dotnet publish cffview\cffview.csproj -c Release -r win-x64 --self-contained false -o publish
 
       - store_artifacts:
           path: publish

@@ -117,7 +117,11 @@ public class TransportApiService : ITransportApiService
                 return new ApiResponse<List<Departure>> { Success = true, Data = new List<Departure>() };
             }
 
-            var departures = result.Stationboard.Select(s => new Departure
+            var departures = result.Stationboard
+                .GroupBy(s => s.DepartureTimestamp)
+                .Select(g => g.First())
+                .Take(limit)
+                .Select(s => new Departure
             {
                 Id = s.Number ?? s.Name ?? Guid.NewGuid().ToString(),
                 StopId = stationId,

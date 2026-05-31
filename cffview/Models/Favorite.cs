@@ -33,6 +33,18 @@ public class Departure
 
     public DateTime DisplayTime => RealTime ?? ScheduledTime;
     public bool IsDelayed => DelayMinutes > 0;
+
+    public string TimeUntilText
+    {
+        get
+        {
+            var mins = (DisplayTime - DateTime.Now).TotalMinutes;
+            if (mins < -1) return "parti";
+            if (mins < 1) return "à quai";
+            if (mins < 60) return $"{(int)mins} min";
+            return DisplayTime.ToString("HH:mm");
+        }
+    }
 }
 
 public enum DepartureStatus

@@ -57,18 +57,18 @@ public class ConverterTests
     }
 
     [Theory]
-    [InlineData(0, "Gray")]
-    [InlineData(5, "Red")]
-    [InlineData(-2, "Gray")]
-    public void DelayToColorConverter_ReturnsColor(int delay, string expectedColor)
+    [InlineData(0, false)]
+    [InlineData(5, true)]
+    [InlineData(-2, false)]
+    public void DelayToColorConverter_ReturnsColor(int delay, bool expectRed)
     {
         var converter = new DelayToColorConverter();
-        var result = converter.Convert(delay, typeof(System.Windows.Media.Brush), null, System.Globalization.CultureInfo.InvariantCulture);
-        
-        if (expectedColor == "Red")
-            Assert.Equal(System.Windows.Media.Color.FromRgb(238, 28, 37), ((System.Windows.Media.SolidColorBrush)result).Color);
+        var result = (System.Windows.Media.SolidColorBrush)converter.Convert(delay, typeof(System.Windows.Media.Brush), null, System.Globalization.CultureInfo.InvariantCulture);
+
+        if (expectRed)
+            Assert.Equal(System.Windows.Media.Color.FromRgb(211, 47, 47), result.Color);
         else
-            Assert.Equal(System.Windows.Media.Colors.Gray, ((System.Windows.Media.SolidColorBrush)result).Color);
+            Assert.Equal(System.Windows.Media.Color.FromRgb(46, 125, 50), result.Color);
     }
 
     [Fact]

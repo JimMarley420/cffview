@@ -30,7 +30,7 @@ public class MainViewModelTests
     public void MainViewModel_InitialState_HasEmptyCollections()
     {
         Assert.NotNull(_viewModel.SearchResults);
-        Assert.NotNull(_viewModel.Departures);
+        Assert.NotNull(_viewModel.PreviewDepartures);
         Assert.NotNull(_viewModel.Favorites);
         Assert.Empty(_viewModel.SearchResults);
     }

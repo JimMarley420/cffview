@@ -41,13 +41,13 @@ public class StationBoardItemDto
     public string? Number { get; set; }
     public string? Operator { get; set; }
     public string? To { get; set; }
-    public string? Departure { get; set; }
-    public long DepartureTimestamp { get; set; }
-    public int? Delay { get; set; }
-    public string? Platform { get; set; }
 }
 
 public class StopDetailDto
 {
     public StationDto? Station { get; set; }
+    public string? Departure { get; set; }
+    public long? DepartureTimestamp { get; set; }
+    public int? Delay { get; set; }
+    public string? Platform { get; set; }
 }

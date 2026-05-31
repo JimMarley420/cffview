@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using cffview.Services;
 using cffview.ViewModels;
 using Serilog;
+using System.Text.Json;
 
 namespace cffview;
 
@@ -21,7 +22,8 @@ public partial class App : Application
         DispatcherUnhandledException += OnDispatcherUnhandledException;
         
         Log.Information("CFF View starting...");
-        
+        ThemeManager.Apply(false);
+
         try
         {
             var services = new ServiceCollection();

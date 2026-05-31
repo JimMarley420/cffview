@@ -118,30 +118,33 @@ public class TransportApiService : ITransportApiService
             }
 
             var departures = result.Stationboard
+                .Where(s => s.Stop != null)
                 .Select(s => new Departure
-            {
-                Id = s.Number ?? s.Name ?? Guid.NewGuid().ToString(),
-                StopId = stationId,
-                StopName = s.Stop?.Station?.Name ?? result.Station?.Name ?? "",
-                Line = new Line
                 {
-                    ShortName = s.Number ?? "",
-                    LongName = s.Name ?? "",
-                    Color = GetCategoryColor(s.Category)
-                },
-                ScheduledTime = ParseDateTime(s.Departure),
-                RealTime = s.DepartureTimestamp > 0 ? ParseTimestamp(s.DepartureTimestamp) : null,
-                DelayMinutes = s.Delay ?? 0,
-                Destination = s.To ?? "",
-                Platform = s.Platform ?? "",
-                Operator = s.Operator ?? "",
-                Status = s.Delay > 0 ? DepartureStatus.Delayed :
-                         s.Category is "IC" or "EC" or "IR" or "RE" ? DepartureStatus.RealTime :
-                         DepartureStatus.Scheduled
-            })
-            .OrderBy(d => d.DisplayTime)
-            .Take(limit)
-            .ToList();
+                    Id = s.Number ?? s.Name ?? Guid.NewGuid().ToString(),
+                    StopId = stationId,
+                    StopName = s.Stop!.Station?.Name ?? result.Station?.Name ?? "",
+                    Line = new Line
+                    {
+                        ShortName = s.Number ?? s.Name ?? "?",
+                        LongName = s.Name ?? "",
+                        Color = GetCategoryColor(s.Category)
+                    },
+                    ScheduledTime = ParseDateTime(s.Stop.Departure),
+                    RealTime = (s.Stop.DepartureTimestamp ?? 0) > 0
+                        ? ParseTimestamp(s.Stop.DepartureTimestamp!.Value) : null,
+                    DelayMinutes = s.Stop.Delay ?? 0,
+                    Destination = s.To ?? "",
+                    Platform = s.Stop.Platform ?? "",
+                    Operator = s.Operator ?? "",
+                    Status = (s.Stop.Delay ?? 0) > 0 ? DepartureStatus.Delayed :
+                             s.Category is "IC" or "EC" or "IR" or "RE" ? DepartureStatus.RealTime :
+                             DepartureStatus.Scheduled
+                })
+                .Where(d => d.DisplayTime >= DateTime.Now.AddMinutes(-1))
+                .OrderBy(d => d.DisplayTime)
+                .Take(limit)
+                .ToList();
 
             _logger.Information("Retrieved {Count} departures for {Station}", departures.Count, stationId);
             return new ApiResponse<List<Departure>> { Success = true, Data = departures };

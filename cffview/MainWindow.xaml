@@ -7,118 +7,224 @@
         xmlns:converters="clr-namespace:cffview.Converters"
         mc:Ignorable="d"
         MouseLeftButtonDown="Window_MouseLeftButtonDown"
+        PreviewKeyDown="Window_PreviewKeyDown"
         Title="CFF View"
-        Height="600" Width="400"
-        MinHeight="500" MinWidth="350"
+        Height="700" Width="940"
+        MinHeight="500" MinWidth="720"
         WindowStartupLocation="CenterScreen"
-        Background="#F0F0F0"
+        Background="{DynamicResource AppBackground}"
         d:DataContext="{d:DesignInstance vm:MainViewModel}">
 
     <Window.Resources>
-        <converters:BoolToVisibilityConverter x:Key="BoolToVis"/>
-        <converters:NullToVisibilityConverter x:Key="NullToVis"/>
-        <converters:DelayToColorConverter x:Key="DelayToColor"/>
-        <converters:TimeFormatConverter x:Key="TimeFormat"/>
-        <converters:LineColorConverter x:Key="LineColor"/>
+        <converters:BoolToVisibilityConverter   x:Key="BoolToVis"/>
+        <converters:NullToVisibilityConverter   x:Key="NullToVis"/>
+        <converters:DelayToColorConverter       x:Key="DelayToColor"/>
+        <converters:TimeFormatConverter         x:Key="TimeFormat"/>
+        <converters:LineColorConverter          x:Key="LineColor"/>
+        <converters:CountToVisibilityConverter  x:Key="CountToVis"/>
+        <converters:BoolToThemeIconConverter    x:Key="ThemeIcon"/>
+        <converters:DelayedToColorConverter     x:Key="DelayedToColor"/>
 
+        <!-- Card -->
         <Style x:Key="CardStyle" TargetType="Border">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Margin" Value="8,4"/>
-            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Background"    Value="{DynamicResource CardBackground}"/>
+            <Setter Property="BorderBrush"   Value="{DynamicResource CardBorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius"  Value="10"/>
+            <Setter Property="Margin"        Value="6"/>
+            <Setter Property="Padding"       Value="14,12"/>
             <Setter Property="Effect">
                 <Setter.Value>
-                    <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.1" Direction="270"/>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.07" Direction="270"/>
                 </Setter.Value>
             </Setter>
         </Style>
 
-        <Style x:Key="SearchBoxStyle" TargetType="TextBox">
-            <Setter Property="FontSize" Value="15"/>
-            <Setter Property="Padding" Value="10,8"/>
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush" Value="#DDD"/>
-            <Setter Property="BorderThickness" Value="1"/>
+        <!-- Icon button -->
+        <Style x:Key="IconBtn" TargetType="Button">
+            <Setter Property="Background"    Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor"        Value="Hand"/>
+            <Setter Property="Padding"       Value="6,4"/>
+            <Setter Property="Foreground"    Value="{DynamicResource TextMuted}"/>
+            <Setter Property="FontSize"      Value="13"/>
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="TextBox">
-                        <Border Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="6">
-                            <ScrollViewer x:Name="PART_ContentHost" Margin="0"/>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                CornerRadius="5" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource IconButtonHover}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource BorderColor}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
 
-        <DataTemplate x:Key="DepartureTemplate">
-            <Border Margin="0,2" Padding="6" CornerRadius="4" Background="#FAFAFA">
+        <!-- Primary (red) button -->
+        <Style x:Key="PrimaryBtn" TargetType="Button">
+            <Setter Property="Background"    Value="{DynamicResource SbbRed}"/>
+            <Setter Property="Foreground"    Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding"       Value="14,7"/>
+            <Setter Property="FontSize"      Value="12"/>
+            <Setter Property="FontWeight"    Value="Medium"/>
+            <Setter Property="Cursor"        Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SbbRedDark}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#A00000"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Background" Value="#CCCCCC"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Ghost (outline) button for header -->
+        <Style x:Key="GhostBtn" TargetType="Button">
+            <Setter Property="Background"    Value="Transparent"/>
+            <Setter Property="Foreground"    Value="White"/>
+            <Setter Property="BorderBrush"   Value="#FFAAAA"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding"       Value="10,6"/>
+            <Setter Property="FontSize"      Value="12"/>
+            <Setter Property="Cursor"        Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#33FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#55FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Expand/collapse text button -->
+        <Style x:Key="ExpandBtn" TargetType="Button">
+            <Setter Property="Background"    Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground"    Value="{DynamicResource SbbRed}"/>
+            <Setter Property="FontSize"      Value="11"/>
+            <Setter Property="Padding"       Value="4,2"/>
+            <Setter Property="Cursor"        Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                CornerRadius="3" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource IconButtonHover}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Departure row template -->
+        <DataTemplate x:Key="DepartureRow">
+            <Border Margin="0,1" Padding="6,6" CornerRadius="5">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource RowHover}"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="40"/>
+                        <ColumnDefinition Width="46"/>
+                        <ColumnDefinition Width="48"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="48"/>
                     </Grid.ColumnDefinitions>
-                    
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    
-                    <Border Grid.Column="0" Grid.RowSpan="2" 
+
+                    <!-- Line badge -->
+                    <Border Grid.Column="0"
                             Background="{Binding Line.Color, Converter={StaticResource LineColor}}"
-                            CornerRadius="3" Padding="4,2" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding Line.ShortName}" 
-                                   FontWeight="Bold" Foreground="White" FontSize="12"
-                                   HorizontalAlignment="Center"/>
+                            CornerRadius="4" Padding="3,2" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Line.ShortName}"
+                                   FontWeight="Bold" Foreground="White" FontSize="11"
+                                   HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                     </Border>
-                    
-                    <TextBlock Grid.Column="1" Grid.Row="0" 
+
+                    <!-- Departure time -->
+                    <TextBlock Grid.Column="1"
                                Text="{Binding DisplayTime, Converter={StaticResource TimeFormat}}"
-                               FontSize="14" FontWeight="SemiBold" 
-                               VerticalAlignment="Center" Margin="8,0,0,0"/>
-                    
-                    <TextBlock Grid.Column="1" Grid.Row="1" 
-                               Text="{Binding Destination}" FontSize="11" Foreground="#666"
-                               TextTrimming="CharacterEllipsis" Margin="8,0,0,0"/>
-                    
-                    <StackPanel Grid.Column="2" Grid.RowSpan="2" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding DelayMinutes, StringFormat='+{0} min'}" 
-                                   Foreground="{Binding DelayMinutes, Converter={StaticResource DelayToColor}}"
+                               FontSize="14" FontWeight="SemiBold" FontFamily="Consolas"
+                               Foreground="{DynamicResource TextPrimary}"
+                               VerticalAlignment="Center" Margin="7,0,0,0"/>
+
+                    <!-- Destination -->
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding Destination}"
+                               FontSize="12" Foreground="{DynamicResource TextSecondary}"
+                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                               Margin="6,0"/>
+
+                    <!-- Delay badge or "on time" -->
+                    <Border Grid.Column="3" VerticalAlignment="Center" Margin="2,0"
+                            CornerRadius="3" Padding="5,2"
+                            Visibility="{Binding IsDelayed, Converter={StaticResource BoolToVis}}">
+                        <Border.Background>
+                            <SolidColorBrush Color="#FFEBEE"/>
+                        </Border.Background>
+                        <TextBlock Text="{Binding DelayMinutes, StringFormat='+{0} min'}"
+                                   Foreground="#D32F2F" FontSize="10" FontWeight="SemiBold"/>
+                    </Border>
+
+                    <!-- Minutes until / platform -->
+                    <StackPanel Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Right">
+                        <TextBlock Text="{Binding TimeUntilText}"
                                    FontSize="10" FontWeight="Medium"
-                                   HorizontalAlignment="Right"
-                                   Visibility="{Binding IsDelayed, Converter={StaticResource BoolToVis}}"/>
-                        <TextBlock Text="{Binding Platform}" FontSize="10" Foreground="#999"
+                                   Foreground="{Binding IsDelayed, Converter={StaticResource DelayedToColor}}"
+                                   HorizontalAlignment="Right"/>
+                        <TextBlock Text="{Binding Platform}"
+                                   FontSize="10" Foreground="{DynamicResource TextMuted}"
                                    HorizontalAlignment="Right"/>
                     </StackPanel>
                 </Grid>
-            </Border>
-        </DataTemplate>
-
-        <DataTemplate x:Key="FavoriteTemplate">
-            <Border Style="{StaticResource CardStyle}">
-                <StackPanel>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        
-                        <TextBlock Grid.Column="0" Text="{Binding StopName}" 
-                                   FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
-                        <Button Grid.Column="1" Content="X" 
-                                Command="{Binding DataContext.RemoveFavoriteCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                CommandParameter="{Binding}"
-                                Background="Transparent" BorderThickness="0" 
-                                Foreground="#999" FontSize="12" Cursor="Hand" Padding="4"/>
-                    </Grid>
-                    
-                    <ItemsControl ItemsSource="{Binding Departures}" 
-                                  ItemTemplate="{StaticResource DepartureTemplate}"
-                                  Margin="0,6,0,0"/>
-                </StackPanel>
             </Border>
         </DataTemplate>
     </Window.Resources>
@@ -130,110 +236,334 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <Border Grid.Row="0" Background="#EE1C25" Padding="12,10">
-            <StackPanel>
-                <TextBlock Text="CFF View" FontSize="20" FontWeight="Bold" Foreground="White"/>
-                <TextBlock Text="Prochains departs" FontSize="11" Foreground="#FFCCCC"/>
-            </StackPanel>
-        </Border>
-
-        <!-- Main Content -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <StackPanel>
-                <!-- Search Box -->
-                <Border Margin="8,8,8,4">
-                    <Grid>
-                        <TextBox x:Name="SearchBox" 
-                                Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
-                                Style="{StaticResource SearchBoxStyle}"
-                                GotFocus="SearchBox_GotFocus"
-                                LostFocus="SearchBox_LostFocus"
-                                TextChanged="SearchBox_TextChanged"
-                                KeyDown="SearchBox_KeyDown"/>
-                        <TextBlock x:Name="SearchPlaceholder" Text="Rechercher..." 
-                                   IsHitTestVisible="False" Foreground="#999" Margin="12,10"/>
-                    </Grid>
-                </Border>
-
-                <!-- Search Results -->
-                <Border Visibility="{Binding ShowSearchResults, Converter={StaticResource BoolToVis}}"
-                        Margin="8,0,8,4">
-                    <Border Background="White" CornerRadius="6" Padding="4">
-                        <ListView x:Name="SearchResultsList" ItemsSource="{Binding SearchResults}" 
-                                 BorderThickness="0" MaxHeight="200"
-                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                 MouseDoubleClick="SearchResultsList_MouseDoubleClick">
-                            <ListView.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid Margin="4,6">
-                                        <TextBlock Text="{Binding Name}" FontSize="13"/>
-                                    </Grid>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
-                    </Border>
-                </Border>
-
-                <!-- Current Departures -->
-                <Border Visibility="{Binding ShowDepartures, Converter={StaticResource BoolToVis}}"
-                        Style="{StaticResource CardStyle}">
-                    <StackPanel>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Prochains departs" FontSize="14" FontWeight="SemiBold"/>
-                            <Button Grid.Column="1" Content="[Favori]" 
-                                    Command="{Binding AddFavoriteCommand}"
-                                    Background="Transparent" BorderThickness="0" 
-                                    Foreground="#EE1C25" FontSize="11" Cursor="Hand"/>
-                        </Grid>
-                        
-                        <ItemsControl ItemsSource="{Binding Departures}" 
-                                      ItemTemplate="{StaticResource DepartureTemplate}"
-                                      Margin="0,8,0,0"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Favorites -->
-                <ItemsControl ItemsSource="{Binding Favorites}" 
-                              ItemTemplate="{StaticResource FavoriteTemplate}"/>
-
-                <!-- No Favorites -->
-                <Border Visibility="{Binding Favorites.Count, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}"
-                        Margin="20,40" HorizontalAlignment="Center">
-                    <StackPanel HorizontalAlignment="Center">
-                        <TextBlock Text="Aucun favori" FontSize="16" Foreground="#999" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Recherchez un arret" FontSize="12" Foreground="#BBB" Margin="0,4,0,0"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Loading -->
-                <TextBlock Text="Chargement..." FontSize="12" Foreground="#999" Margin="12"
-                           Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"/>
-
-                <!-- Error -->
-                <Border Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}"
-                        Margin="8" Padding="8" Background="#FFEBEE" CornerRadius="4">
-                    <TextBlock Text="{Binding ErrorMessage}" Foreground="#C62828" FontSize="12"/>
-                </Border>
-            </StackPanel>
-        </ScrollViewer>
-
-        <!-- Bottom Bar -->
-        <Border Grid.Row="2" Background="White" Padding="12,6" BorderThickness="0,1,0,0" BorderBrush="#DDD">
+        <!-- ══════════════════════ HEADER ══════════════════════ -->
+        <Border Grid.Row="0" Background="{DynamicResource SbbRed}" Padding="16,10,14,10">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" Foreground="#888" FontSize="11" VerticalAlignment="Center"/>
-                <Button Grid.Column="1" Content="Refresh" 
-                        Command="{Binding RefreshCommand}"
-                        Background="Transparent" BorderThickness="0" 
-                        FontSize="11" Cursor="Hand" Padding="8,2"/>
+
+                <!-- Left: logo -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock FontSize="22" FontWeight="Black" Foreground="White">
+                        <Run Text="CFF"/>
+                        <Run Text=" View" FontWeight="Light" Foreground="#FFCCCC"/>
+                    </TextBlock>
+                    <Border Background="#C80000" CornerRadius="4" Padding="7,3" Margin="10,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="HORAIRES" FontSize="9" FontWeight="Bold" Foreground="#FFE0E0"/>
+                    </Border>
+                    <!-- Offline badge -->
+                    <Border Background="#B00000" CornerRadius="4" Padding="7,3" Margin="6,0,0,0" VerticalAlignment="Center"
+                            Visibility="{Binding IsOffline, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="HORS LIGNE" FontSize="9" FontWeight="Bold" Foreground="#FFE0E0"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- Right: actions -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0">
+                    <TextBlock Text="{Binding LastRefreshed, StringFormat='Màj {0}'}"
+                               FontSize="11" Foreground="#FFAAAA" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <Button Content="{Binding IsDarkMode, Converter={StaticResource ThemeIcon}}"
+                            Command="{Binding ToggleThemeCommand}"
+                            Style="{StaticResource GhostBtn}"
+                            Margin="0,0,6,0" ToolTip="Changer le thème" FontSize="14"/>
+                    <Button Content="⟳ Actualiser" Command="{Binding RefreshCommand}"
+                            Style="{StaticResource GhostBtn}"
+                            ToolTip="Actualiser tous (Ctrl+R)"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ══════════════════════ CONTENT ══════════════════════ -->
+        <Grid Grid.Row="1">
+
+            <!-- Main scrollable area -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="4,0,4,16">
+
+                    <!-- Search box -->
+                    <Border Margin="10,10,10,0">
+                        <Grid>
+                            <TextBox x:Name="SearchBox"
+                                     Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
+                                     FontSize="14" Padding="42,10,12,10"
+                                     Background="{DynamicResource SearchBackground}"
+                                     BorderBrush="{DynamicResource BorderColor}"
+                                     BorderThickness="1"
+                                     Foreground="{DynamicResource TextPrimary}"
+                                     CaretBrush="{DynamicResource TextPrimary}"
+                                     GotFocus="SearchBox_GotFocus"
+                                     LostFocus="SearchBox_LostFocus"
+                                     TextChanged="SearchBox_TextChanged"
+                                     KeyDown="SearchBox_KeyDown">
+                                <TextBox.Template>
+                                    <ControlTemplate TargetType="TextBox">
+                                        <Border Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                CornerRadius="8">
+                                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </TextBox.Template>
+                            </TextBox>
+                            <TextBlock Text="🔍" IsHitTestVisible="False"
+                                       FontSize="14" Margin="14,0,0,0" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="SearchPlaceholder"
+                                       Text="Rechercher un arrêt (ex: Lausanne, Genève...)"
+                                       IsHitTestVisible="False"
+                                       Foreground="{DynamicResource TextMuted}"
+                                       FontSize="13" Margin="42,0,0,0" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Preview card (arrêt sélectionné, pas encore en favoris) -->
+                    <Border Margin="10,8,10,4"
+                            Visibility="{Binding ShowPreview, Converter={StaticResource BoolToVis}}"
+                            Background="{DynamicResource PreviewBackground}"
+                            BorderBrush="{DynamicResource SbbRed}"
+                            BorderThickness="2" CornerRadius="10" Padding="14,12">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1" Direction="270"/>
+                        </Border.Effect>
+                        <StackPanel>
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="▶  " Foreground="{DynamicResource SbbRed}" FontSize="13"/>
+                                    <TextBlock Text="{Binding SelectedStop.Name}"
+                                               FontSize="16" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimary}"/>
+                                </StackPanel>
+
+                                <Button Grid.Column="1" Content="⭐  Ajouter aux favoris"
+                                        Command="{Binding AddFavoriteCommand}"
+                                        Style="{StaticResource PrimaryBtn}"
+                                        Margin="8,0"/>
+
+                                <Button Grid.Column="2" Content="✕"
+                                        Command="{Binding DismissPreviewCommand}"
+                                        Style="{StaticResource IconBtn}"
+                                        ToolTip="Fermer (Échap)"/>
+                            </Grid>
+
+                            <Rectangle Height="1" Fill="{DynamicResource SeparatorColor}" Margin="0,0,0,6"/>
+
+                            <ItemsControl ItemsSource="{Binding PreviewDepartures}"
+                                          ItemTemplate="{StaticResource DepartureRow}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Global loading -->
+                    <Border Margin="10,6"
+                            Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"
+                            Background="{DynamicResource CardBackground}"
+                            BorderBrush="{DynamicResource CardBorderColor}" BorderThickness="1"
+                            CornerRadius="8" Padding="14,10">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <TextBlock Text="⏳ " FontSize="13"/>
+                            <TextBlock Text="Chargement en cours..."
+                                       FontSize="13" Foreground="{DynamicResource TextMuted}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Error -->
+                    <Border Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}"
+                            Margin="10,4" Padding="14,10" Background="#FFEBEE"
+                            BorderBrush="#EF9A9A" BorderThickness="1" CornerRadius="8">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="⚠  " Foreground="#C62828" FontSize="13"/>
+                            <TextBlock Text="{Binding ErrorMessage}" Foreground="#C62828" FontSize="13"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ════════ FAVORITES GRID (2 colonnes) ════════ -->
+                    <ItemsControl ItemsSource="{Binding Favorites}" Margin="4,4">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="2"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource CardStyle}">
+                                    <StackPanel>
+                                        <!-- Card header -->
+                                        <Grid Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Grid.Column="0"
+                                                       Text="{Binding StopName}"
+                                                       FontSize="14" FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource TextPrimary}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       VerticalAlignment="Center"/>
+
+                                            <!-- Loading spinner text -->
+                                            <TextBlock Grid.Column="1"
+                                                       Text="⏳" FontSize="12"
+                                                       VerticalAlignment="Center" Margin="0,0,2,0"
+                                                       Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"/>
+
+                                            <Button Grid.Column="2"
+                                                    Content="⟳"
+                                                    Command="{Binding RefreshDeparturesCommand}"
+                                                    Style="{StaticResource IconBtn}"
+                                                    ToolTip="Actualiser cet arrêt"/>
+
+                                            <Button Grid.Column="3"
+                                                    Content="✕"
+                                                    Command="{Binding DataContext.RemoveFavoriteCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource IconBtn}"
+                                                    ToolTip="Supprimer des favoris"/>
+                                        </Grid>
+
+                                        <Rectangle Height="1" Fill="{DynamicResource SeparatorColor}" Margin="0,0,0,6"/>
+
+                                        <!-- Departures list -->
+                                        <ItemsControl ItemsSource="{Binding VisibleDepartures}"
+                                                      ItemTemplate="{StaticResource DepartureRow}"
+                                                      Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}"/>
+
+                                        <!-- No departures -->
+                                        <TextBlock Text="Aucun départ disponible"
+                                                   FontSize="12" Foreground="{DynamicResource TextMuted}"
+                                                   Margin="0,8" HorizontalAlignment="Center"
+                                                   Visibility="{Binding ShowNoDepartures, Converter={StaticResource BoolToVis}}"/>
+
+                                        <!-- Expand / collapse -->
+                                        <Button Content="{Binding ExpandLabel}"
+                                                Command="{Binding ToggleExpandCommand}"
+                                                Style="{StaticResource ExpandBtn}"
+                                                HorizontalAlignment="Center"
+                                                Margin="0,6,0,0"
+                                                Visibility="{Binding HasDepartures, Converter={StaticResource BoolToVis}}"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Empty state -->
+                    <Border Margin="0,50"
+                            Visibility="{Binding ShowEmptyState, Converter={StaticResource BoolToVis}}">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="🚉" FontSize="56" HorizontalAlignment="Center" Margin="0,0,0,16"/>
+                            <TextBlock Text="Aucun arrêt en favoris"
+                                       FontSize="20" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextSecondary}"
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Text="Recherchez un arrêt ci-dessus et ajoutez-le&#x0a;pour retrouver ses horaires en un coup d'oeil."
+                                       FontSize="13" Foreground="{DynamicResource TextMuted}"
+                                       HorizontalAlignment="Center" TextAlignment="Center"
+                                       Margin="0,10,0,0" LineHeight="22"/>
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Search results OVERLAY (par-dessus le contenu) -->
+            <Border Panel.ZIndex="100"
+                    VerticalAlignment="Top" HorizontalAlignment="Stretch"
+                    Margin="10,58,10,0"
+                    Visibility="{Binding ShowSearchResults, Converter={StaticResource BoolToVis}}">
+                <Border Background="{DynamicResource DropdownBackground}"
+                        BorderBrush="{DynamicResource DropdownBorder}" BorderThickness="1"
+                        CornerRadius="10">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.15" Direction="270"/>
+                    </Border.Effect>
+                    <ListView x:Name="SearchResultsList"
+                              ItemsSource="{Binding SearchResults}"
+                              BorderThickness="0" MaxHeight="260"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto"
+                              SelectionChanged="SearchResultsList_SelectionChanged"
+                              Background="Transparent">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="Margin"  Value="0"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListViewItem">
+                                            <Border x:Name="Bd" Padding="14,10"
+                                                    Background="{TemplateBinding Background}"
+                                                    Cursor="Hand">
+                                                <ContentPresenter/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ListItemHover}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="📍 " FontSize="12"/>
+                                    <TextBlock Text="{Binding Name}" FontSize="13"
+                                               Foreground="{DynamicResource TextPrimary}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Border>
+            </Border>
+        </Grid>
+
+        <!-- ══════════════════════ FOOTER ══════════════════════ -->
+        <Border Grid.Row="2"
+                Background="{DynamicResource FooterBackground}"
+                BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,1,0,0"
+                Padding="16,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Ellipse Width="8" Height="8" VerticalAlignment="Center" Margin="0,0,7,0">
+                        <Ellipse.Style>
+                            <Style TargetType="Ellipse">
+                                <Setter Property="Fill" Value="#2E7D32"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsOffline}" Value="True">
+                                        <Setter Property="Fill" Value="#9E9E9E"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Ellipse.Style>
+                    </Ellipse>
+                    <TextBlock Text="{Binding StatusMessage}"
+                               Foreground="{DynamicResource TextSecondary}" FontSize="12"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <TextBlock Grid.Column="1"
+                           Foreground="{DynamicResource TextMuted}" FontSize="11"
+                           VerticalAlignment="Center">
+                    <Run Text="Ctrl+R Actualiser  ·  Échap Fermer"/>
+                </TextBlock>
             </Grid>
         </Border>
     </Grid>

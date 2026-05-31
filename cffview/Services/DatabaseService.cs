@@ -12,6 +12,7 @@ public interface IDatabaseService
     Task<Favorite> AddFavoriteAsync(Stop stop, string? lineId = null, string? lineName = null);
     Task RemoveFavoriteAsync(int id);
     Task UpdateFavoriteOrderAsync(List<Favorite> favorites);
+    Task UpdateLineFilterAsync(int id, string? lineFilter);
 }
 
 public class DatabaseService : IDatabaseService
@@ -105,5 +106,15 @@ public class DatabaseService : IDatabaseService
     {
         _favorites = favorites;
         await SaveAsync();
+    }
+
+    public async Task UpdateLineFilterAsync(int id, string? lineFilter)
+    {
+        var fav = _favorites.FirstOrDefault(f => f.Id == id);
+        if (fav != null)
+        {
+            fav.LineFilter = lineFilter;
+            await SaveAsync();
+        }
     }
 }

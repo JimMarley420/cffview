@@ -17,6 +17,7 @@ public partial class MainViewModel : ObservableObject
     private readonly ILogger _logger = Log.ForContext<MainViewModel>();
     private readonly DispatcherTimer _refreshTimer;
     private CancellationTokenSource? _searchCts;
+    private bool _suppressSearch;
 
     [ObservableProperty] private ObservableCollection<Stop> _searchResults = new();
     [ObservableProperty] private ObservableCollection<Departure> _previewDepartures = new();
@@ -95,7 +96,7 @@ public partial class MainViewModel : ObservableObject
     private async Task LoadFavoritesAsync()
     {
         var favs = await _databaseService.GetFavoritesAsync();
-        var vms = favs.Select(f => new FavoriteViewModel(f, _apiService, _gtfsService)).ToList();
+        var vms = favs.Select(f => new FavoriteViewModel(f, _apiService, _gtfsService, _databaseService)).ToList();
         Favorites.Clear();
         foreach (var vm in vms)
             Favorites.Add(vm);
@@ -143,9 +144,11 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private async Task SelectStopAsync(Stop stop)
     {
+        _suppressSearch = true;
         SelectedStop = stop;
         ShowSearchResults = false;
         SearchQuery = stop.Name;
+        _suppressSearch = false;
         await LoadPreviewAsync(stop.Id);
     }
 
@@ -182,13 +185,16 @@ public partial class MainViewModel : ObservableObject
         try
         {
             var favorite = await _databaseService.AddFavoriteAsync(SelectedStop);
-            var vm = new FavoriteViewModel(favorite, _apiService, _gtfsService);
+            var vm = new FavoriteViewModel(favorite, _apiService, _gtfsService, _databaseService);
             Favorites.Add(vm);
             await vm.LoadDeparturesAsync();
+            _suppressSearch = true;
             SelectedStop = null;
             PreviewDepartures.Clear();
             PreviewHasDepartures = false;
             SearchQuery = string.Empty;
+            ShowSearchResults = false;
+            _suppressSearch = false;
         }
         catch (Exception ex)
         {
@@ -199,10 +205,13 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void DismissPreview()
     {
+        _suppressSearch = true;
         SelectedStop = null;
         PreviewDepartures.Clear();
         PreviewHasDepartures = false;
         SearchQuery = string.Empty;
+        ShowSearchResults = false;
+        _suppressSearch = false;
     }
 
     [RelayCommand]
@@ -246,6 +255,7 @@ public partial class MainViewModel : ObservableObject
 
     partial void OnSearchQueryChanged(string value)
     {
+        if (_suppressSearch) return;
         _searchCts?.Cancel();
         _searchCts = new CancellationTokenSource();
         if (!string.IsNullOrWhiteSpace(value) && value.Length >= 2)
@@ -255,16 +265,20 @@ public partial class MainViewModel : ObservableObject
     }
 }
 
+public record LineChip(string ShortName, string Color, bool IsSelected);
+
 public partial class FavoriteViewModel : ObservableObject
 {
     private readonly ITransportApiService _apiService;
     private readonly IGtfsService _gtfsService;
+    private readonly IDatabaseService _databaseService;
 
     [ObservableProperty] private int _id;
     [ObservableProperty] private string _stopId = string.Empty;
     [ObservableProperty] private string _stopName = string.Empty;
     [ObservableProperty] private ObservableCollection<Departure> _departures = new();
     [ObservableProperty] private ObservableCollection<Departure> _visibleDepartures = new();
+    [ObservableProperty] private ObservableCollection<LineChip> _lineChips = new();
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowNoDepartures))]
@@ -274,34 +288,74 @@ public partial class FavoriteViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(ExpandLabel))]
     private bool _isExpanded;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasLineFilter))]
+    private string _lineFilter = string.Empty;
+
     public bool HasDepartures => Departures.Any();
     public bool ShowNoDepartures => !IsLoading && !HasDepartures;
     public string ExpandLabel => IsExpanded ? "▲ Moins" : "▼ Plus";
+    public bool HasLineFilter => !string.IsNullOrWhiteSpace(LineFilter);
 
-    public FavoriteViewModel(Favorite favorite, ITransportApiService apiService, IGtfsService gtfsService)
+    public FavoriteViewModel(Favorite favorite, ITransportApiService apiService, IGtfsService gtfsService, IDatabaseService databaseService)
     {
         _apiService = apiService;
         _gtfsService = gtfsService;
+        _databaseService = databaseService;
         Id = favorite.Id;
         StopId = favorite.StopId;
         StopName = favorite.StopName;
+        LineFilter = favorite.LineFilter ?? string.Empty;
         Departures.CollectionChanged += (_, _) =>
         {
             OnPropertyChanged(nameof(HasDepartures));
             OnPropertyChanged(nameof(ShowNoDepartures));
-            RefreshVisible();
+            RefreshAll();
         };
+    }
+
+    private void RefreshAll()
+    {
+        RefreshChips();
+        RefreshVisible();
+    }
+
+    private void RefreshChips()
+    {
+        LineChips.Clear();
+        var seen = new HashSet<string>();
+        foreach (var dep in Departures)
+        {
+            if (seen.Add(dep.Line.ShortName))
+                LineChips.Add(new LineChip(dep.Line.ShortName, dep.Line.Color,
+                    dep.Line.ShortName == LineFilter));
+        }
     }
 
     private void RefreshVisible()
     {
         VisibleDepartures.Clear();
-        var limit = IsExpanded ? Departures.Count : Math.Min(5, Departures.Count);
-        foreach (var dep in Departures.Take(limit))
+        var source = string.IsNullOrWhiteSpace(LineFilter)
+            ? Departures
+            : Departures.Where(d => d.Line.ShortName.Equals(LineFilter.Trim(), StringComparison.OrdinalIgnoreCase));
+        var limit = IsExpanded ? int.MaxValue : 5;
+        foreach (var dep in source.Take(limit))
             VisibleDepartures.Add(dep);
     }
 
     partial void OnIsExpandedChanged(bool value) => RefreshVisible();
+
+    partial void OnLineFilterChanged(string value)
+    {
+        RefreshAll();
+        _ = _databaseService.UpdateLineFilterAsync(Id, string.IsNullOrWhiteSpace(value) ? null : value);
+    }
+
+    [RelayCommand]
+    private void SelectLine(string lineName)
+    {
+        LineFilter = LineFilter == lineName ? string.Empty : lineName;
+    }
 
     public async Task LoadDeparturesAsync()
     {

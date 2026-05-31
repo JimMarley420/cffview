@@ -50,6 +50,29 @@ public partial class MainWindow : Window
             vm.ShowSearchResults = false;
     }
 
+    private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount == 2)
+        {
+            WindowState = WindowState == WindowState.Maximized
+                ? WindowState.Normal : WindowState.Maximized;
+        }
+        else if (e.ButtonState == MouseButtonState.Pressed)
+        {
+            DragMove();
+        }
+    }
+
+    private void MinimizeWindow(object sender, RoutedEventArgs e)
+        => WindowState = WindowState.Minimized;
+
+    private void MaximizeRestoreWindow(object sender, RoutedEventArgs e)
+        => WindowState = WindowState == WindowState.Maximized
+            ? WindowState.Normal : WindowState.Maximized;
+
+    private void CloseWindow(object sender, RoutedEventArgs e)
+        => Close();
+
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
     {
         if (DataContext is not MainViewModel vm) return;

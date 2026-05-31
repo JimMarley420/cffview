@@ -62,6 +62,7 @@ public class Favorite
     public string StopName { get; set; } = string.Empty;
     public string? LineId { get; set; }
     public string? LineName { get; set; }
+    public string? LineFilter { get; set; }
     public int DisplayOrder { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 }

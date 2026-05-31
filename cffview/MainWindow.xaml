@@ -5,25 +5,96 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:cffview.ViewModels"
         xmlns:converters="clr-namespace:cffview.Converters"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         mc:Ignorable="d"
         MouseLeftButtonDown="Window_MouseLeftButtonDown"
         PreviewKeyDown="Window_PreviewKeyDown"
         Title="CFF View"
+        Icon="Assets/app.ico"
         Height="700" Width="940"
         MinHeight="500" MinWidth="720"
+        WindowStyle="None"
+        ResizeMode="CanResize"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource AppBackground}"
         d:DataContext="{d:DesignInstance vm:MainViewModel}">
 
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="46"
+                            ResizeBorderThickness="5"
+                            UseAeroCaptionButtons="False"
+                            GlassFrameThickness="0,0,0,1"/>
+    </shell:WindowChrome.WindowChrome>
+
     <Window.Resources>
-        <converters:BoolToVisibilityConverter   x:Key="BoolToVis"/>
-        <converters:NullToVisibilityConverter   x:Key="NullToVis"/>
-        <converters:DelayToColorConverter       x:Key="DelayToColor"/>
-        <converters:TimeFormatConverter         x:Key="TimeFormat"/>
-        <converters:LineColorConverter          x:Key="LineColor"/>
-        <converters:CountToVisibilityConverter  x:Key="CountToVis"/>
-        <converters:BoolToThemeIconConverter    x:Key="ThemeIcon"/>
-        <converters:DelayedToColorConverter     x:Key="DelayedToColor"/>
+        <converters:BoolToVisibilityConverter      x:Key="BoolToVis"/>
+        <converters:NullToVisibilityConverter      x:Key="NullToVis"/>
+        <converters:DelayToColorConverter          x:Key="DelayToColor"/>
+        <converters:TimeFormatConverter            x:Key="TimeFormat"/>
+        <converters:LineColorConverter             x:Key="LineColor"/>
+        <converters:CountToVisibilityConverter     x:Key="CountToVis"/>
+        <converters:BoolToThemeIconConverter       x:Key="ThemeIcon"/>
+        <converters:DelayedToColorConverter        x:Key="DelayedToColor"/>
+        <converters:WindowStateToIconConverter     x:Key="WinStateIcon"/>
+
+        <!-- Window control buttons (min / max / close) -->
+        <Style x:Key="WinCtrlBtn" TargetType="Button">
+            <Setter Property="Background"     Value="Transparent"/>
+            <Setter Property="Foreground"     Value="#FFCCCC"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Width"          Value="42"/>
+            <Setter Property="Height"         Value="46"/>
+            <Setter Property="FontSize"       Value="14"/>
+            <Setter Property="Cursor"         Value="Arrow"/>
+            <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#33FFFFFF"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#55FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="WinCloseBtn" TargetType="Button">
+            <Setter Property="Background"     Value="Transparent"/>
+            <Setter Property="Foreground"     Value="#FFCCCC"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Width"          Value="42"/>
+            <Setter Property="Height"         Value="46"/>
+            <Setter Property="FontSize"       Value="14"/>
+            <Setter Property="Cursor"         Value="Arrow"/>
+            <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#E81123"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#C50E1F"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
         <!-- Card -->
         <Style x:Key="CardStyle" TargetType="Border">
@@ -236,16 +307,18 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- ══════════════════════ HEADER ══════════════════════ -->
-        <Border Grid.Row="0" Background="{DynamicResource SbbRed}" Padding="16,10,14,10">
+        <!-- ══════════════════════ HEADER (custom title bar) ══════════════════════ -->
+        <Border Grid.Row="0" Background="{DynamicResource SbbRed}"
+                MouseLeftButtonDown="Header_MouseLeftButtonDown">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Left: logo -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <!-- Left: logo + badges -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
                     <TextBlock FontSize="22" FontWeight="Black" Foreground="White">
                         <Run Text="CFF"/>
                         <Run Text=" View" FontWeight="Light" Foreground="#FFCCCC"/>
@@ -253,24 +326,43 @@
                     <Border Background="#C80000" CornerRadius="4" Padding="7,3" Margin="10,0,0,0" VerticalAlignment="Center">
                         <TextBlock Text="HORAIRES" FontSize="9" FontWeight="Bold" Foreground="#FFE0E0"/>
                     </Border>
-                    <!-- Offline badge -->
                     <Border Background="#B00000" CornerRadius="4" Padding="7,3" Margin="6,0,0,0" VerticalAlignment="Center"
                             Visibility="{Binding IsOffline, Converter={StaticResource BoolToVis}}">
                         <TextBlock Text="HORS LIGNE" FontSize="9" FontWeight="Bold" Foreground="#FFE0E0"/>
                     </Border>
                 </StackPanel>
 
-                <!-- Right: actions -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0">
+                <!-- Center: app actions -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,8,0">
                     <TextBlock Text="{Binding LastRefreshed, StringFormat='Màj {0}'}"
                                FontSize="11" Foreground="#FFAAAA" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <Button Content="{Binding IsDarkMode, Converter={StaticResource ThemeIcon}}"
                             Command="{Binding ToggleThemeCommand}"
                             Style="{StaticResource GhostBtn}"
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True"
                             Margin="0,0,6,0" ToolTip="Changer le thème" FontSize="14"/>
                     <Button Content="⟳ Actualiser" Command="{Binding RefreshCommand}"
                             Style="{StaticResource GhostBtn}"
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True"
                             ToolTip="Actualiser tous (Ctrl+R)"/>
+                </StackPanel>
+
+                <!-- Right: window controls -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Stretch">
+                    <Rectangle Width="1" Fill="#AA000000" Margin="4,8,0,8"/>
+                    <Button Style="{StaticResource WinCtrlBtn}"
+                            Click="MinimizeWindow" ToolTip="Réduire">
+                        <TextBlock Text="—" FontSize="12" VerticalAlignment="Center"/>
+                    </Button>
+                    <Button Style="{StaticResource WinCtrlBtn}"
+                            Click="MaximizeRestoreWindow" ToolTip="Agrandir / Restaurer">
+                        <TextBlock Text="{Binding WindowState, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource WinStateIcon}}"
+                                   FontSize="12" VerticalAlignment="Center"/>
+                    </Button>
+                    <Button Style="{StaticResource WinCloseBtn}"
+                            Click="CloseWindow" ToolTip="Fermer">
+                        <TextBlock Text="✕" FontSize="13" VerticalAlignment="Center"/>
+                    </Button>
                 </StackPanel>
             </Grid>
         </Border>
@@ -410,7 +502,6 @@
                                                        TextTrimming="CharacterEllipsis"
                                                        VerticalAlignment="Center"/>
 
-                                            <!-- Loading spinner text -->
                                             <TextBlock Grid.Column="1"
                                                        Text="⏳" FontSize="12"
                                                        VerticalAlignment="Center" Margin="0,0,2,0"
@@ -420,15 +511,68 @@
                                                     Content="⟳"
                                                     Command="{Binding RefreshDeparturesCommand}"
                                                     Style="{StaticResource IconBtn}"
-                                                    ToolTip="Actualiser cet arrêt"/>
+                                                    ToolTip="Actualiser"/>
 
                                             <Button Grid.Column="3"
                                                     Content="✕"
                                                     Command="{Binding DataContext.RemoveFavoriteCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                     CommandParameter="{Binding}"
                                                     Style="{StaticResource IconBtn}"
-                                                    ToolTip="Supprimer des favoris"/>
+                                                    ToolTip="Supprimer"/>
                                         </Grid>
+
+                                        <!-- Line chips (cliquer pour filtrer) -->
+                                        <ItemsControl ItemsSource="{Binding LineChips}" Margin="0,0,0,6"
+                                                      Visibility="{Binding HasDepartures, Converter={StaticResource BoolToVis}}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel Orientation="Horizontal"/>
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Button Margin="2,2"
+                                                            Command="{Binding DataContext.SelectLineCommand,
+                                                                              RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                            CommandParameter="{Binding ShortName}"
+                                                            Cursor="Hand"
+                                                            ToolTip="{Binding ShortName, StringFormat='Filtrer ligne {0}'}">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="Bd"
+                                                                        Background="{Binding Color, Converter={StaticResource LineColor}}"
+                                                                        CornerRadius="4" Padding="8,4">
+                                                                    <Border.Style>
+                                                                        <Style TargetType="Border">
+                                                                            <Setter Property="Opacity" Value="0.45"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                                    <Setter Property="Opacity" Value="1"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </Border.Style>
+                                                                    <StackPanel Orientation="Horizontal">
+                                                                        <TextBlock Text="{Binding ShortName}"
+                                                                                   FontWeight="Bold" Foreground="White" FontSize="11"/>
+                                                                        <TextBlock Text=" ✓" FontSize="10" Foreground="White"
+                                                                                   Visibility="{Binding IsSelected, Converter={StaticResource BoolToVis}}"/>
+                                                                    </StackPanel>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="Bd" Property="Opacity" Value="0.8"/>
+                                                                    </Trigger>
+                                                                    <Trigger Property="IsPressed" Value="True">
+                                                                        <Setter TargetName="Bd" Property="Opacity" Value="1"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
 
                                         <Rectangle Height="1" Fill="{DynamicResource SeparatorColor}" Margin="0,0,0,6"/>
 
@@ -437,11 +581,21 @@
                                                       ItemTemplate="{StaticResource DepartureRow}"
                                                       Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}"/>
 
-                                        <!-- No departures -->
-                                        <TextBlock Text="Aucun départ disponible"
-                                                   FontSize="12" Foreground="{DynamicResource TextMuted}"
+                                        <!-- No departures / no match -->
+                                        <TextBlock FontSize="12" Foreground="{DynamicResource TextMuted}"
                                                    Margin="0,8" HorizontalAlignment="Center"
-                                                   Visibility="{Binding ShowNoDepartures, Converter={StaticResource BoolToVis}}"/>
+                                                   Visibility="{Binding ShowNoDepartures, Converter={StaticResource BoolToVis}}">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="Aucun départ disponible"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasLineFilter}" Value="True">
+                                                            <Setter Property="Text" Value="Aucun départ pour cette ligne"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
 
                                         <!-- Expand / collapse -->
                                         <Button Content="{Binding ExpandLabel}"

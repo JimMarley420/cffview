@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
 using cffview.Models;
+using System.Windows.Shell;
 
 namespace cffview.Converters;
 
@@ -128,6 +129,14 @@ public class DelayedToColorConverter : IValueConverter
             return new SolidColorBrush(Color.FromRgb(211, 47, 47));
         return new SolidColorBrush(Color.FromRgb(46, 125, 50));
     }
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        => throw new NotImplementedException();
+}
+
+public class WindowStateToIconConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        => value is WindowState s && s == WindowState.Maximized ? "❐" : "□";
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         => throw new NotImplementedException();
 }

@@ -11,6 +11,7 @@
     <Company>OpenTransport</Company>
     <Product>CFF View - Horaires Transports Suisses</Product>
     <Description>Application WPF affichant les prochains départs de transports publics suisses</Description>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,6 +31,8 @@
     <None Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <Resource Include="Assets\app.ico"/>
+    <Resource Include="Assets\sbb-logo.jpg"/>
   </ItemGroup>
 
 </Project>

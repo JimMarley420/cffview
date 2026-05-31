@@ -159,7 +159,7 @@ public class FavoriteViewModelTests
         var mockGtfs = new Mock<IGtfsService>();
         
         var favorite = new Favorite { Id = 1, StopId = "8501120", StopName = "Lausanne" };
-        var vm = new FavoriteViewModel(favorite, mockApi.Object, mockGtfs.Object);
+        var vm = new FavoriteViewModel(favorite, mockApi.Object, mockGtfs.Object, new Mock<IDatabaseService>().Object);
 
         Assert.NotNull(vm.Departures);
         Assert.Empty(vm.Departures);
@@ -172,7 +172,7 @@ public class FavoriteViewModelTests
         var mockGtfs = new Mock<IGtfsService>();
         
         var favorite = new Favorite { Id = 1, StopId = "8501120", StopName = "Lausanne" };
-        var vm = new FavoriteViewModel(favorite, mockApi.Object, mockGtfs.Object);
+        var vm = new FavoriteViewModel(favorite, mockApi.Object, mockGtfs.Object, new Mock<IDatabaseService>().Object);
 
         Assert.Equal("8501120", vm.StopId);
         Assert.Equal("Lausanne", vm.StopName);

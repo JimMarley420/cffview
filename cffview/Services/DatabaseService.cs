@@ -13,11 +13,14 @@ public interface IDatabaseService
     Task RemoveFavoriteAsync(int id);
     Task UpdateFavoriteOrderAsync(List<Favorite> favorites);
     Task UpdateLineFilterAsync(int id, string? lineFilter);
+    Task<UserSettings> GetSettingsAsync();
+    Task SaveSettingsAsync(UserSettings settings);
 }
 
 public class DatabaseService : IDatabaseService
 {
     private readonly string _dataPath;
+    private readonly string _settingsPath;
     private readonly ILogger _logger = Log.ForContext<DatabaseService>();
     private List<Favorite> _favorites = new();
     private int _nextId = 1;
@@ -29,6 +32,7 @@ public class DatabaseService : IDatabaseService
         if (customPath != null)
         {
             _dataPath = customPath;
+            _settingsPath = Path.Combine(Path.GetDirectoryName(customPath)!, "settings.json");
         }
         else
         {
@@ -36,6 +40,7 @@ public class DatabaseService : IDatabaseService
             var dbFolder = Path.Combine(appData, "CFFView");
             Directory.CreateDirectory(dbFolder);
             _dataPath = Path.Combine(dbFolder, "favorites.json");
+            _settingsPath = Path.Combine(dbFolder, "settings.json");
         }
     }
 
@@ -115,6 +120,36 @@ public class DatabaseService : IDatabaseService
         {
             fav.LineFilter = lineFilter;
             await SaveAsync();
+        }
+    }
+
+    public async Task<UserSettings> GetSettingsAsync()
+    {
+        try
+        {
+            if (File.Exists(_settingsPath))
+            {
+                var json = await File.ReadAllTextAsync(_settingsPath);
+                return JsonSerializer.Deserialize<UserSettings>(json) ?? new UserSettings();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Could not load settings");
+        }
+        return new UserSettings();
+    }
+
+    public async Task SaveSettingsAsync(UserSettings settings)
+    {
+        try
+        {
+            var json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(_settingsPath, json);
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Could not save settings");
         }
     }
 }

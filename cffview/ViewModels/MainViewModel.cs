@@ -72,6 +72,12 @@ public partial class MainViewModel : ObservableObject
         try
         {
             await _databaseService.InitializeAsync();
+
+            // Restore saved theme
+            var settings = await _databaseService.GetSettingsAsync();
+            IsDarkMode = settings.IsDarkMode;
+            ThemeManager.Apply(IsDarkMode);
+
             var isOnline = await _apiService.CheckConnectivityAsync();
             IsOffline = !isOnline;
             if (!isOnline)
@@ -239,10 +245,11 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ToggleTheme()
+    private async Task ToggleTheme()
     {
         IsDarkMode = !IsDarkMode;
         ThemeManager.Apply(IsDarkMode);
+        await _databaseService.SaveSettingsAsync(new UserSettings { IsDarkMode = IsDarkMode });
     }
 
     private static IEnumerable<Departure> Deduplicate(IEnumerable<Departure> deps)

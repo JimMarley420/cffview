@@ -74,3 +74,8 @@ public class ApiResponse<T>
     public string? ErrorMessage { get; set; }
     public DateTime Timestamp { get; set; } = DateTime.Now;
 }
+
+public class UserSettings
+{
+    public bool IsDarkMode { get; set; } = false;
+}

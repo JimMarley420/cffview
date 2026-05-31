@@ -19,7 +19,13 @@ public class MainViewModelTests
         _mockApiService = new Mock<ITransportApiService>();
         _mockGtfsService = new Mock<IGtfsService>();
         _mockDbService = new Mock<IDatabaseService>();
-        
+
+        // Default stubs used by InitializeAsync
+        _mockDbService.Setup(x => x.InitializeAsync()).Returns(Task.CompletedTask);
+        _mockDbService.Setup(x => x.GetFavoritesAsync()).ReturnsAsync(new List<Favorite>());
+        _mockDbService.Setup(x => x.GetSettingsAsync()).ReturnsAsync(new UserSettings());
+        _mockDbService.Setup(x => x.SaveSettingsAsync(It.IsAny<UserSettings>())).Returns(Task.CompletedTask);
+
         _viewModel = new MainViewModel(
             _mockApiService.Object,
             _mockGtfsService.Object,

@@ -1,9 +1,12 @@
 #define AppName    "CFF View"
 #define AppVersion "1.0.0"
 #define AppExe     "CFFView.exe"
-#define AppPublisher "OpenTransport"
+#define AppPublisher "Jimmy Marley"
 #define AppURL     "https://github.com/JimMarley420/cffview"
-#define BuildDir   "..\cffview\bin\Release\net10.0-windows\publish"
+; PublishDir peut etre surcharge par le script PS1 : /DPublishDir="..."
+#ifndef PublishDir
+  #define PublishDir "..\publish\win-x64"
+#endif
 
 [Setup]
 AppId={{A3F2B1C4-7E5D-4F89-9A2B-3C6D8E1F0A5B}
@@ -44,7 +47,7 @@ Name: "startupicon";  Description: "Lancer au démarrage de Windows";   GroupDes
 
 [Files]
 ; All published files
-Source: "{#BuildDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#PublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\{#AppName}";             Filename: "{app}\{#AppExe}"; IconFilename: "{app}\{#AppExe}"

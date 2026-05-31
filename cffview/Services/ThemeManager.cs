@@ -10,6 +10,7 @@ public static class ThemeManager
     public static void Apply(bool dark)
     {
         IsDark = dark;
+        if (Application.Current == null) return;
         var r = Application.Current.Resources;
 
         if (dark)
